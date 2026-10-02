@@ -1,0 +1,12 @@
+# Build artifacts
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+captures/
+.DS_Store
+
+# Jangan abaikan keystore/debug (disengaja: sertifikat rilis demo
+# dipakai bersama agar APK langsung installable — ganti untuk rilis publik)

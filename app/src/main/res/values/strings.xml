@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zona Waktu Lokal</string>
+    <string name="widget_time_label">Jam Zona (Legal + Matahari)</string>
+    <string name="widget_prayer_label">Jadwal Sholat</string>
+    <string name="widget_mini_label">Mini Solar Clock</string>
+</resources>

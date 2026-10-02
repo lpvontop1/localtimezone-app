@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e1a">
+<title>Zona Waktu Lokal Indonesia</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">☀️</div>
+  <div class="splash-title">Zona Waktu Lokal</div>
+  <div class="splash-sub">Waktu hukum · waktu matahari · Equation of Time</div>
+  <div class="splash-bar"><div id="splashBar"></div></div>
+</div>
+
+<!-- HEADER -->
+<header id="appHeader">
+  <div class="hdr-left">
+    <div class="hdr-title">Zona Waktu Lokal</div>
+    <div class="hdr-loc" id="hdrLoc">Memuat lokasi…</div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-clock" id="hdrClock">--:--:--</div>
+    <div class="hdr-zone" id="hdrZone">—</div>
+  </div>
+</header>
+
+<main id="appMain">
+
+  <!-- ============ BERANDA ============ -->
+  <section class="page active" id="page-home">
+    <div class="card hero-card">
+      <div class="hero-date" id="homeDate">—</div>
+      <div class="hero-hijri" id="homeHijri"></div>
+      <div class="hero-clock" id="homeClock">--:--:--</div>
+      <div class="hero-zone" id="homeZoneLabel">—</div>
+    </div>
+
+    <div class="card" id="cardSolar">
+      <div class="card-head">☀️ Waktu Matahari Sejati</div>
+      <div class="solar-big" id="solarClock">--:--:--</div>
+      <div class="solar-delta" id="solarDelta">—</div>
+      <div class="grid2">
+        <div class="kv"><span>Kulminasi (noon)</span><b id="solarNoon">—</b></div>
+        <div class="kv"><span>Waktu matahari rata-rata</span><b id="solarMean">—</b></div>
+        <div class="kv"><span>Terbit</span><b id="sunriseT">—</b></div>
+        <div class="kv"><span>Terbenam</span><b id="sunsetT">—</b></div>
+        <div class="kv"><span>Panjang siang</span><b id="dayLen">—</b></div>
+        <div class="kv"><span>Elevasi / Azimut</span><b id="sunPos">—</b></div>
+      </div>
+      <canvas id="eotChart" width="320" height="72"></canvas>
+      <div class="chart-cap">Kurva Equation of Time sepanjang tahun (menit)</div>
+    </div>
+
+    <div class="card" id="cardLmt">
+      <div class="card-head">📐 Perbandingan Tiga Waktu</div>
+      <div class="compare-row"><span>Jam legal</span><b id="cmpLegal">—</b></div>
+      <div class="compare-row"><span>Matahari rata-rata (bujur)</span><b id="cmpLmt">—</b></div>
+      <div class="compare-row"><span>Matahari sejati (+ EoT)</span><b id="cmpTst">—</b></div>
+      <div class="compare-note" id="cmpNote">—</div>
+    </div>
+
+    <div class="row2">
+      <button class="btn" id="btnGps">📍 Pakai Lokasi Saya</button>
+      <button class="btn ghost" id="btnPickKec">🔎 Pilih Kecamatan</button>
+    </div>
+  </section>
+
+  <!-- ============ PETA ============ -->
+  <section class="page" id="page-map">
+    <div class="search-wrap">
+      <input type="search" id="mapSearch" placeholder="Cari kecamatan… mis. Menteng" autocomplete="off">
+      <div id="mapResults" class="results"></div>
+    </div>
+    <div id="map"></div>
+    <div class="card map-info" id="mapInfo">
+      <div class="map-info-title" id="mapKecTitle">Pilih kecamatan di pencarian</div>
+      <div class="map-info-sub" id="mapKecSub">—</div>
+      <div class="grid2">
+        <div class="kv"><span>Waktu legal</span><b id="mapLegal">—</b></div>
+        <div class="kv"><span>Waktu matahari</span><b id="mapSolar">—</b></div>
+        <div class="kv"><span>EoT hari ini</span><b id="mapEot">—</b></div>
+        <div class="kv"><span>Selisih dgn meridian</span><b id="mapMerid">—</b></div>
+      </div>
+      <div id="mapWeather" class="weather">Cuaca akan muncul di sini (butuh internet).</div>
+    </div>
+  </section>
+
+  <!-- ============ SHOLAT ============ -->
+  <section class="page" id="page-prayer">
+    <div class="card next-card">
+      <div class="card-head">🕌 Sholat Berikutnya</div>
+      <div class="next-name" id="nextPrayerName">—</div>
+      <div class="next-time" id="nextPrayerTime">--:--</div>
+      <div class="next-count" id="nextPrayerCount">—</div>
+    </div>
+
+    <div class="card">
+      <div class="date-nav">
+        <button class="btn small ghost" id="prvPrev">◀</button>
+        <b id="prvDate">—</b>
+        <button class="btn small ghost" id="prvNext">▶</button>
+      </div>
+      <div class="prayer-list" id="prayerList"></div>
+      <div class="prayer-meta" id="prayerMeta">—</div>
+    </div>
+
+    <div class="row2">
+      <button class="btn" id="prvToday">Hari Ini</button>
+      <button class="btn ghost" id="prvMonth">Bulan Ini</button>
+    </div>
+
+    <div class="card hidden" id="monthCard">
+      <div class="card-head">📅 Jadwal Bulanan</div>
+      <div class="month-table-wrap"><table class="month-table" id="monthTable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">⚙️ Metode Perhitungan</div>
+      <div class="grid2">
+        <div class="kv"><span>Sudut Subuh</span><b id="setFajr">20°</b></div>
+        <div class="kv"><span>Sudut Isya</span><b id="setIsha">18°</b></div>
+        <div class="kv"><span>Mazhab Ashar</span><b id="setAsr">Syafi'i</b></div>
+        <div class="kv"><span>Ihtiyat</span><b id="setIht">±2 mnt</b></div>
+      </div>
+      <label class="switch-row"><input type="checkbox" id="chkHanafi"> Mazhab Hanafi (Ashar, bayangan 2×)</label>
+      <button class="btn ghost" id="btnAladhan">🌐 Verifikasi Online (Aladhan/Kemenag)</button>
+      <div class="verify-out" id="aladhanOut"></div>
+    </div>
+  </section>
+
+  <!-- ============ LAINNYA ============ -->
+  <section class="page" id="page-more">
+    <div class="card">
+      <div class="card-head">ℹ️ Tentang Waktu Indonesia</div>
+      <div class="about-text">
+        <p><b>Waktu legal</b> Indonesia memakai tiga zona: <b>WIB (UTC+7)</b>, <b>WITA (UTC+8)</b>,
+        <b>WIT (UTC+9)</b> — meridian acuan 105°BT, 120°BT, dan 135°BT (Keppres 41/1987).</p>
+        <p><b>Waktu matahari sejati</b> dihitung dari bujur lokasi Anda: setiap 1° bujur = 4 menit
+        (15° = 1 jam, 7,5° = 30 menit, 3,75° = 15 menit), lalu dikoreksi <b>Equation of Time (EoT)</b>
+        akibat orbit elips bumi & kemiringan sumbu 23,44°. EoT berkisar ±16,5 menit;
+        maksimum ±3 November, minimum ±11 Februari, nol ±15 Apr / 13 Jun / 1 Sep / 25 Des.</p>
+        <p>Rumus EoT (NOAA): EoT = 229,18·(0,000075 + 0,001868·cosγ − 0,032077·sinγ −
+        0,014615·cos2γ − 0,040849·sin2γ), dengan γ = 2π·n/365.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🧪 Diagnostik & Uji Mandiri</div>
+      <button class="btn" id="btnSelfTest">Jalankan Self-Test</button>
+      <div id="selfTestOut" class="test-out"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📊 Data & Sumber</div>
+      <div class="about-text small">
+        <p>• Data kecamatan: <b id="statKec">—</b> kecamatan, 38 provinsi (GeoNames, CC BY 4.0)<br>
+        • Boundary peta: OpenStreetMap live (selalu terkini) via Nominatim/Overpass<br>
+        • Cuaca: Open-Meteo (CC BY 4.0)<br>
+        • Verifikasi sholat: Aladhan API (metode 20 = Kemenag RI)<br>
+        • Formula astronomi: NOAA Solar Calculator</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📍 Lokasi Aktif</div>
+      <div class="kv"><span>Nama</span><b id="stLocName">—</b></div>
+      <div class="kv"><span>Koordinat</span><b id="stLocCoord">—</b></div>
+      <div class="kv"><span>Sumber</span><b id="stLocSrc">—</b></div>
+      <button class="btn ghost" id="btnShare">📤 Bagikan Info Waktu</button>
+    </div>
+  </section>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav id="bottomNav">
+  <button class="nav-btn active" data-page="page-home"><span>🏠</span>Beranda</button>
+  <button class="nav-btn" data-page="page-map"><span>🗺️</span>Peta</button>
+  <button class="nav-btn" data-page="page-prayer"><span>🕌</span>Sholat</button>
+  <button class="nav-btn" data-page="page-more"><span>⚙️</span>Lainnya</button>
+</nav>
+
+<!-- MODAL PEMILIH KECAMATAN -->
+<div class="modal" id="kecModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <b>Pilih Kecamatan</b>
+      <button class="modal-x" id="kecModalX">✕</button>
+    </div>
+    <input type="search" id="kecSearch" placeholder="Ketik nama kecamatan…" autocomplete="off">
+    <div id="kecResults" class="results"></div>
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/data/geodata.js"></script>
+<script src="js/astro.js"></script>
+<script src="js/zones.js"></script>
+<script src="js/prayer.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/map.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

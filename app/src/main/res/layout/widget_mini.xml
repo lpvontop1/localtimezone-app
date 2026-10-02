@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget 3: Mini Solar Clock 2x1 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="12dp"
+    android:gravity="center_vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextClock
+            android:id="@+id/wmClock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format24Hour="HH:mm"
+            android:format12Hour="hh:mm a"
+            android:textColor="#E8EBFF"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/wmZone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#7C5CFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="8dp"
+            android:text="WIB" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/wmSolar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFB454"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:text="☀ --:--" />
+</LinearLayout>
