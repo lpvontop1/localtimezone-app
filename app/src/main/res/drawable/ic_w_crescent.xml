@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ikon sabit (bulan) vektor. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFC46B"
+        android:pathData="M15.2,2.6 C10.4,3.6 6.8,7.9 6.8,13.0 C6.8,18.1 10.4,22.4 15.2,23.4 C8.9,23.0 4.0,17.7 4.0,11.4 C4.0,9.0 4.7,6.8 6.0,5.0 C8.5,3.2 11.7,2.3 15.2,2.6 Z" />
+    <path
+        android:fillColor="#FFC46B"
+        android:pathData="M14.0,3.0 C18.4,4.2 21.6,8.4 21.6,13.2 C21.6,18.0 18.4,22.1 14.0,23.2 C18.0,21.0 20.4,17.3 20.4,13.1 C20.4,8.9 18.0,5.2 14.0,3.0 Z" />
+</vector>

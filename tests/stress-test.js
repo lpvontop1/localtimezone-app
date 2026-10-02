@@ -104,5 +104,54 @@ console.log('▶ S5: renderHome virtual (tanpa DOM) — 200 tick');
   check('S5 total', ms / 200 < 5, fmt(ms) + ' → ' + (ms / 200).toFixed(2) + ' ms/tick');
 }
 
+console.log('▶ S6: mesin boundary v3 — 2.000 parse WKT + 2.000 stitch + 7.285 lookup kode');
+{
+  const fs = require('fs');
+  const path = require('path');
+  const { SHARED } = require('./helper');
+  // muat kec_codes ke SHARED
+  const kecSrc = fs.readFileSync(path.join(require('./helper').WWW, 'js', 'data', 'kec_codes.js'), 'utf8');
+  new Function('window', kecSrc)(SHARED);
+  const K = SHARED.KECCODES || {};
+
+  let wktSample = null;
+  try { wktSample = JSON.parse(fs.readFileSync('/tmp/tulung_ok.json', 'utf8')).data[0].WKT_GEOMETRY; }
+  catch (e) {
+    // fallback: sintetis multi-poligon besar
+    let pts = [];
+    for (let i = 0; i < 600; i++) {
+      const a = i / 600 * 2 * Math.PI;
+      pts.push((110 + 0.2 * Math.cos(a)).toFixed(6) + ' ' + (-7.6 + 0.2 * Math.sin(a)).toFixed(6));
+    }
+    wktSample = 'MULTIPOLYGON (((' + pts.join(',') + ')))';
+  }
+  const t0 = process.hrtime.bigint();
+  let sink = 0;
+  for (let i = 0; i < 2000; i++) {
+    const geo = MapMod.wktToGeojson(wktSample);
+    if (geo) sink++;
+  }
+  const t1 = process.hrtime.bigint();
+  // cincin tertutup dari 60 titik lingkaran → dipecah jadi segmen → diacak
+  const ring = [];
+  for (let i = 0; i < 60; i++) {
+    const a = i / 60 * 2 * Math.PI;
+    ring.push([110 + 0.2 * Math.cos(a), -7.6 + 0.2 * Math.sin(a)]);
+  }
+  const segs = [];
+  for (let i = 0; i < 60; i++) segs.push([ring[i], ring[(i + 1) % 60]]);
+  segs.reverse(); // urutan acak sengaja: stitching harus menyambung ulang
+  for (let i = 0; i < 2000; i++) sink += MapMod.stitchRings(segs).length;
+  const t2 = process.hrtime.bigint();
+  const keys = Object.keys(K);
+  for (let i = 0; i < 10; i++) for (const k of keys) sink += K[k].length;
+  const t3 = process.hrtime.bigint();
+  const msW = Number(t1 - t0) / 1e6, msS = Number(t2 - t1) / 1e6, msK = Number(t3 - t2) / 1e6;
+  check('S6a parse WKT ×2000', msW / 2000 < 15, fmt(msW) + ' → ' + (msW / 2000).toFixed(3) + ' ms/parse');
+  check('S6b stitch ×2000 (60 segmen acak → 1 ring)', msS / 2000 < 5, fmt(msS) + ' → ' + (msS / 2000).toFixed(3) + ' ms/stitch');
+  check('S6c lookup kode ×' + (keys.length * 10).toLocaleString('id-ID'), msK < 200, fmt(msK));
+  check('S6 sanity', sink > 5000, 'sink=' + sink);
+}
+
 console.log('\n════════ stress-test.js: ' + (failed ? 'ADA TARGET GAGAL' : 'SEMUA TARGET TERCAPAI') + ' ════════');
 process.exitCode = failed ? 1 : 0;

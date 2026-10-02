@@ -7,37 +7,48 @@ import android.content.Context
 import android.widget.RemoteViews
 
 /**
- * WidgetAlarmReceiver — dipanggil alarm menit-an; render ulang semua widget.
+ * WidgetAlarmReceiver — dipanggil alarm terjadwal; render ulang semua widget
+ * lalu pasang alarm berikutnya (rantai).
  */
 class WidgetAlarmReceiver : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: android.content.Intent) {
         super.onReceive(context, intent)
         if (intent.action == WidgetUpdater.ACTION_TICK) {
             WidgetUpdater.renderAll(context)
+            WidgetUpdater.armNextTick(context)
         }
     }
 }
 
 /**
- * BootReceiver — pasang ulang alarm setelah perangkat menyala.
+ * BootReceiver — pasang ulang alarm setelah perangkat menyala
+ * atau aplikasi diperbarui (MY_PACKAGE_REPLACED).
  */
 class BootReceiver : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: android.content.Intent) {
         super.onReceive(context, intent)
-        if (intent.action == android.content.Intent.ACTION_BOOT_COMPLETED) {
-            WidgetUpdater.scheduleMinuteTick(context)
-            WidgetUpdater.renderAll(context)
+        when (intent.action) {
+            android.content.Intent.ACTION_BOOT_COMPLETED,
+            android.content.Intent.ACTION_MY_PACKAGE_REPLACED,
+            "android.intent.action.QUICKBOOT_POWERON" -> {
+                WidgetUpdater.armNextTick(context, 8_000L)
+                WidgetUpdater.renderAll(context)
+            }
         }
     }
 }
 
 /**
- * TimeWidgetProvider — Widget 1: jam legal (TextClock, selalu tepat) +
- * waktu matahari sejati + EoT (dihitung Kotlin tiap menit).
+ * TimeWidgetProvider — Widget "Jam Zona":
+ *  • Jam legal: TextClock zona Asia/… (detak native launcher — TIDAK beku).
+ *  • Jam matahari: TextClock dengan zona GMT custom (bujur×4 mnt + EoT)
+ *    sehingga ikut berdetak native tanpa alarm.
+ *  • Busur matahari digambar runtime (WidgetArt).
  */
 class TimeWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
         render(context, mgr, ids)
+        WidgetUpdater.armNextTick(context)
     }
 
     companion object {
@@ -52,22 +63,26 @@ class TimeWidgetProvider : AppWidgetProvider() {
             val off = AstroCalc.zoneOffsetForProvince(prov).let {
                 if (it < 0) AstroCalc.zoneOffsetForLon(lon, lat) else it
             }
-            val tzId = if (off == 8) "Asia/Makassar" else if (off == 9) "Asia/Jayapura" else "Asia/Jakarta"
-            val label = if (off == 8) "WITA" else if (off == 9) "WIT" else "WIB"
+            val tzId = AstroCalc.zoneTzId(off)
+            val label = AstroCalc.zoneLabel(off)
 
             val now = System.currentTimeMillis()
-            val tst = AstroCalc.trueSolarTimeMinutes(now, lon)
+            val solarId = AstroCalc.solarGmtId(now, lon)
             val eot = AstroCalc.equationOfTime(now)
-            val solarStr = AstroCalc.minutesToHM(tst)
-            val eotStr = (if (eot >= 0) "+" else "") + String.format("%.1f", eot)
+            val eotStr = (if (eot >= 0) "+" else "−") + String.format("%.1f", kotlin.math.abs(eot))
+            val dateStr = AstroCalc.dateString(now, tzId)
+            val phase = AstroCalc.sunPhase(now, lat, lon, off)
+            val arc = WidgetArt.sunArc(104, 52, phase)
 
             for (id in ids) {
                 val rv = RemoteViews(context.packageName, R.layout.widget_time)
-                rv.setTextViewText(R.id.wtLoc, name)
-                rv.setTextViewText(R.id.wtSolar, "☀ $solarStr  (EoT $eotStr)")
-                rv.setTextViewText(R.id.wtDate, "waktu matahari sejati · $label")
-                // TextClock: set zona waktu via setTimeZone (method setter String)
+                rv.setTextViewText(R.id.wtLoc, "KEC. " + name.uppercase())
                 rv.setString(R.id.wtClock, "setTimeZone", tzId)
+                rv.setString(R.id.wtSolarClock, "setTimeZone", solarId)
+                rv.setTextViewText(R.id.wtDate, dateStr)
+                rv.setTextViewText(R.id.wtEot, "EoT " + eotStr)
+                rv.setTextViewText(R.id.wtZone, "WAKTU MATAHARI · $label")
+                rv.setImageViewBitmap(R.id.wtArc, arc)
                 mgr.updateAppWidget(id, rv)
             }
         }
@@ -75,11 +90,13 @@ class TimeWidgetProvider : AppWidgetProvider() {
 }
 
 /**
- * PrayerWidgetProvider — Widget 2: jadwal sholat hari ini (Kemenag).
+ * PrayerWidgetProvider — Widget "Jadwal Sholat":
+ * waktu berikutnya + bar progres, grid 2×3, tanpa emoji.
  */
 class PrayerWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
         render(context, mgr, ids)
+        WidgetUpdater.armNextTick(context)
     }
 
     companion object {
@@ -94,25 +111,33 @@ class PrayerWidgetProvider : AppWidgetProvider() {
             val off = AstroCalc.zoneOffsetForProvince(prov).let {
                 if (it < 0) AstroCalc.zoneOffsetForLon(lon, lat) else it
             }
+            val tzId = AstroCalc.zoneTzId(off)
             val now = System.currentTimeMillis()
             val t = AstroCalc.prayerTimes(now, lat, lon, off)
-            val minsNow = AstroCalc.localMinutesNow(now,
-                if (off == 8) "Asia/Makassar" else if (off == 9) "Asia/Jayapura" else "Asia/Jakarta")
+            val minsNow = AstroCalc.localMinutesNow(now, tzId)
 
-            // sholat berikutnya (abaikan Terbit sebagai "sholat")
-            var nextName = "Subuh"; var nextMin = t.fajr
+            // waktu berikutnya (abaikan Terbit) & sebelumnya (untuk progres)
             val list = t.asArray().filter { it.first != "Terbit" }
+            var nextName = "Subuh"; var nextMin = t.fajr; var prevMin = t.isha
             for ((nm, mn) in list) {
                 if (mn > minsNow) { nextName = nm; nextMin = mn; break }
+                prevMin = mn
             }
             val diff = if (nextMin <= minsNow) 1440 - minsNow + t.fajr else nextMin - minsNow
-            val nextStr = String.format("%d jam %d mnt", diff.toInt() / 60, (diff % 60).toInt())
+            val nextStr = String.format("%d jam %02d mnt", diff.toInt() / 60, (diff % 60).toInt())
+
+            // progres antar waktu (aturan "sebelumnya → berikutnya", melewati tengah malam)
+            val span = if (nextMin > prevMin) nextMin - prevMin else 1440 - prevMin + nextMin
+            val gone = if (minsNow >= prevMin) minsNow - prevMin else 1440 - prevMin + minsNow
+            val progress = if (span > 0) ((gone / span) * 1000).toInt().coerceIn(0, 1000) else 0
 
             for (id in ids) {
                 val rv = RemoteViews(context.packageName, R.layout.widget_prayer)
                 rv.setTextViewText(R.id.wpLoc, name)
-                rv.setTextViewText(R.id.wpNextName, "Berikutnya: $nextName")
-                rv.setTextViewText(R.id.wpNextTime, "${AstroCalc.minutesToHM(nextMin)} · $nextStr lagi")
+                rv.setString(R.id.wpClock, "setTimeZone", tzId)
+                rv.setTextViewText(R.id.wpNextName, nextName)
+                rv.setTextViewText(R.id.wpNextCount, "$nextStr lagi")
+                rv.setProgressBar(R.id.wpBar, 1000, progress, false)
                 rv.setTextViewText(R.id.wpFajr, AstroCalc.minutesToHM(t.fajr))
                 rv.setTextViewText(R.id.wpSunrise, AstroCalc.minutesToHM(t.sunrise))
                 rv.setTextViewText(R.id.wpDhuhr, AstroCalc.minutesToHM(t.dhuhr))
@@ -126,11 +151,13 @@ class PrayerWidgetProvider : AppWidgetProvider() {
 }
 
 /**
- * MiniWidgetProvider — Widget 3: mini 2×1, jam legal + matahari.
+ * MiniWidgetProvider — Widget "Mini Solar": jam legal + chip zona +
+ * jam matahari (detak native) + cincin progres hari.
  */
 class MiniWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, mgr: AppWidgetManager, ids: IntArray) {
         render(context, mgr, ids)
+        WidgetUpdater.armNextTick(context)
     }
 
     companion object {
@@ -143,15 +170,23 @@ class MiniWidgetProvider : AppWidgetProvider() {
             val off = AstroCalc.zoneOffsetForProvince(prov).let {
                 if (it < 0) AstroCalc.zoneOffsetForLon(lon, lat) else it
             }
-            val tzId = if (off == 8) "Asia/Makassar" else if (off == 9) "Asia/Jayapura" else "Asia/Jakarta"
-            val label = if (off == 8) "WITA" else if (off == 9) "WIT" else "WIB"
-            val solarStr = AstroCalc.minutesToHM(AstroCalc.trueSolarTimeMinutes(System.currentTimeMillis(), lon))
+            val tzId = AstroCalc.zoneTzId(off)
+            val label = AstroCalc.zoneLabel(off)
+            val now = System.currentTimeMillis()
+            val solarId = AstroCalc.solarGmtId(now, lon)
+            val phase = AstroCalc.sunPhase(now, lat, lon, off)
+            val ring = WidgetArt.solarRing(30, phase.dayFrac.toFloat())
+            val eot = AstroCalc.equationOfTime(now)
+            val eotStr = (if (eot >= 0) "+" else "−") +
+                String.format("%.1f", kotlin.math.abs(eot))
 
             for (id in ids) {
                 val rv = RemoteViews(context.packageName, R.layout.widget_mini)
                 rv.setString(R.id.wmClock, "setTimeZone", tzId)
+                rv.setString(R.id.wmSolarClock, "setTimeZone", solarId)
                 rv.setTextViewText(R.id.wmZone, label)
-                rv.setTextViewText(R.id.wmSolar, "☀ $solarStr")
+                rv.setTextViewText(R.id.wmSolarEot, "EoT $eotStr")
+                rv.setImageViewBitmap(R.id.wmRing, ring)
                 mgr.updateAppWidget(id, rv)
             }
         }

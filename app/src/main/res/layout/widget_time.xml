@@ -1,47 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget 1: Jam Zona — waktu legal (TextClock) + waktu matahari -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Widget 1 "Jam Zona" — jam legal besar (detak native) + busur matahari
+     yang digambar runtime + jam matahari (TextClock zona GMT custom). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_bg"
-    android:padding="14dp"
-    android:gravity="center_vertical">
+    android:background="@drawable/widget_bg">
 
-    <TextView
-        android:id="@+id/wtLoc"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#9AA3C7"
-        android:textSize="12sp"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:text="Menteng" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:gravity="center_vertical">
 
-    <TextClock
-        android:id="@+id/wtClock"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:format24Hour="HH:mm"
-        android:format12Hour="hh:mm a"
-        android:textColor="#E8EBFF"
-        android:textSize="34sp"
-        android:textStyle="bold" />
+        <!-- Kolom kiri: lokasi + jam legal + tanggal -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="fill_vertical">
 
-    <TextView
-        android:id="@+id/wtSolar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#FFB454"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:text="☀ --:--  (EoT --)" />
+            <TextView
+                android:id="@+id/wtLoc"
+                style="@style/WaLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MENTENG" />
 
-    <TextView
-        android:id="@+id/wtDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#9AA3C7"
-        android:textSize="11sp"
-        android:text="waktu matahari sejati · WIB" />
-</LinearLayout>
+            <TextClock
+                android:id="@+id/wtClock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:format24Hour="HH:mm"
+                android:format12Hour="hh:mm a"
+                android:fontFamily="sans-serif-light"
+                android:fontFeatureSettings="tnum"
+                android:textColor="#F2F5FB"
+                android:textSize="42sp"
+                android:includeFontPadding="false" />
+
+            <TextView
+                android:id="@+id/wtDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#97A2BC"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="Kamis, 2 Okt 2026" />
+        </LinearLayout>
+
+        <!-- Kolom kanan: busur matahari + jam matahari -->
+        <LinearLayout
+            android:layout_width="116dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/wtArc"
+                android:layout_width="104dp"
+                android:layout_height="52dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Busur matahari" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="2dp">
+
+                <ImageView
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:src="@drawable/ic_w_sun"
+                    android:contentDescription="@null" />
+
+                <TextClock
+                    android:id="@+id/wtSolarClock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:format24Hour="HH:mm"
+                    android:format12Hour="hh:mm a"
+                    android:fontFamily="sans-serif-medium"
+                    android:fontFeatureSettings="tnum"
+                    android:textColor="#FFC46B"
+                    android:textSize="15sp"
+                    android:includeFontPadding="false" />
+
+                <TextView
+                    android:id="@+id/wtEot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="#97A2BC"
+                    android:textSize="10sp"
+                    android:text="+0:00" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/wtZone"
+                style="@style/WaLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="WAKTU MATAHARI · WIB" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

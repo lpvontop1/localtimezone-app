@@ -134,6 +134,82 @@
     </div>
   </section>
 
+  <!-- ============ SOLAR (MIRROR mysolartime.com) ============ -->
+  <section class="page" id="page-solar">
+    <div class="card mirror-card">
+      <div class="mirror-badge">MIRROR · mysolartime.com</div>
+      <div class="dual-clock">
+        <div class="dual-col solar-col">
+          <div class="dual-label">Waktu Matahari Sejati</div>
+          <div class="dual-time" id="solSolar">--:--:--</div>
+          <div class="dual-sub" id="solSolarOff">GMT+7:00</div>
+        </div>
+        <div class="dual-sep"></div>
+        <div class="dual-col legal-col">
+          <div class="dual-label">Waktu Legal</div>
+          <div class="dual-time" id="solLegal">--:--:--</div>
+          <div class="dual-sub" id="solLegalOff">WIB · GMT+7:00</div>
+        </div>
+      </div>
+      <div class="mirror-note" id="solDelta">Selisih: —</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🗺️ Sumber Waktu & Lokasi</div>
+      <div class="kv"><span>Lokasi aktif</span><b id="solLoc">—</b></div>
+      <div class="kv"><span>Koordinat</span><b id="solCoord">—</b></div>
+      <div class="kv"><span>Zona perangkat</span><b id="solMachine">—</b></div>
+      <div class="kv"><span>Zona matahari (bujur)</span><b id="solLmt">—</b></div>
+      <div class="row2">
+        <button class="btn small" id="solBtnHere">📍 Lokasi Saya</button>
+        <button class="btn small ghost" id="solBtnPick">🔎 Pilih Kecamatan</button>
+      </div>
+      <div class="manual-grid">
+        <input type="number" id="solLat" step="0.0001" placeholder="Lintang (mis. -6.2)">
+        <input type="number" id="solLon" step="0.0001" placeholder="Bujur (mis. 106.8)">
+        <button class="btn small ghost" id="solBtnApply">Terapkan Manual</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">⏱️ Konverter: pilih tanggal &amp; jam</div>
+      <div class="manual-grid">
+        <input type="datetime-local" id="solConvAt">
+        <button class="btn small" id="solBtnConv">Hitung</button>
+      </div>
+      <div id="solConvOut" class="convert-out">Masukkan momen yang ingin dikonversi ke waktu matahari.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🌅 Ephemerides Hari Ini</div>
+      <div class="grid2">
+        <div class="kv"><span>Terbit</span><b id="solRise">—</b></div>
+        <div class="kv"><span>Kulminasi</span><b id="solNoon">—</b></div>
+        <div class="kv"><span>Terbenam</span><b id="solSet">—</b></div>
+        <div class="kv"><span>Panjang siang</span><b id="solLen">—</b></div>
+        <div class="kv"><span>Deklinasi matahari</span><b id="solDecl">—</b></div>
+        <div class="kv"><span>Equation of Time</span><b id="solEot">—</b></div>
+      </div>
+      <canvas id="solChart" width="320" height="80"></canvas>
+      <div class="chart-cap">Kurva EoT sepanjang tahun · titik = hari ini</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🧭 Kompas Matahari</div>
+      <div class="compass-wrap"><canvas id="solCompass" width="220" height="220"></canvas></div>
+      <div class="compass-cap" id="solCompassCap">Matahari terbit di timur, terbenam di barat — arah tepat bergantung musim &amp; bujur.</div>
+    </div>
+
+    <div class="card">
+      <div class="about-text small">
+        <p>Halaman ini <b>mirror fungsional</b> dari <b>mysolartime.com</b> (dual clock, konverter
+        tanggal-jam, ephemerides deklinasi &amp; EoT, kompas matahari) yang diimplementasikan ulang
+        dengan mesin astronomi NOAA aplikasi ini dan <b>berjalan offline</b> di dalam APK.</p>
+      </div>
+      <button class="btn ghost" id="solBtnOriginal">🌐 Buka situs asli mysolartime.com</button>
+    </div>
+  </section>
+
   <!-- ============ LAINNYA ============ -->
   <section class="page" id="page-more">
     <div class="card">
@@ -160,7 +236,8 @@
       <div class="card-head">📊 Data & Sumber</div>
       <div class="about-text small">
         <p>• Data kecamatan: <b id="statKec">—</b> kecamatan, 38 provinsi (GeoNames, CC BY 4.0)<br>
-        • Boundary peta: OpenStreetMap live (selalu terkini) via Nominatim/Overpass<br>
+        • Boundary peta: dataset resmi Permendagri 2023 (geoit.dev, kode Kemendagri 2025 ter-bundel)
+        + OpenStreetMap live (Nominatim/Overpass) + fallback perkiraan<br>
         • Cuaca: Open-Meteo (CC BY 4.0)<br>
         • Verifikasi sholat: Aladhan API (metode 20 = Kemenag RI)<br>
         • Formula astronomi: NOAA Solar Calculator</p>
@@ -181,6 +258,7 @@
 <nav id="bottomNav">
   <button class="nav-btn active" data-page="page-home"><span>🏠</span>Beranda</button>
   <button class="nav-btn" data-page="page-map"><span>🗺️</span>Peta</button>
+  <button class="nav-btn" data-page="page-solar"><span>☀️</span>Solar</button>
   <button class="nav-btn" data-page="page-prayer"><span>🕌</span>Sholat</button>
   <button class="nav-btn" data-page="page-more"><span>⚙️</span>Lainnya</button>
 </nav>
@@ -199,10 +277,12 @@
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="js/data/geodata.js"></script>
+<script src="js/data/kec_codes.js"></script>
 <script src="js/astro.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/prayer.js"></script>
 <script src="js/weather.js"></script>
+<script src="js/solar.js"></script>
 <script src="js/map.js"></script>
 <script src="js/app.js"></script>
 </body>

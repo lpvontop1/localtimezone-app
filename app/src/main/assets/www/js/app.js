@@ -8,7 +8,7 @@
 
   const $ = (s) => document.querySelector(s);
   const Astro = window.Astro, Zones = window.Zones, Prayer = window.Prayer,
-    Weather = window.Weather, MapMod = window.MapMod;
+    Weather = window.Weather, MapMod = window.MapMod, Solar = window.SolarMod;
   const Native = window.AndroidBridge || null;
 
   /* ---------------- STATE ---------------- */
@@ -88,6 +88,7 @@
     if (state.page === 'page-home') renderHome(now, zone, loc);
     if (state.page === 'page-prayer') renderPrayerLive(now, zone);
     if (state.page === 'page-map' && state.mapKec) renderMapInfo(now, zone);
+    if (state.page === 'page-solar' && Solar) Solar.renderLive(now);
   }
 
   /* ---------------- BERANDA ---------------- */
@@ -222,7 +223,9 @@
   }
 
   /* ---------------- PICKER KECAMATAN ---------------- */
-  function openPicker() {
+  let pickerCb = null;
+  function openPicker(cb) {
+    pickerCb = typeof cb === 'function' ? cb : null;
     $('#kecModal').classList.add('show');
     $('#kecSearch').value = '';
     renderPickerResults('');
@@ -246,6 +249,11 @@
     box.querySelectorAll('.result-item').forEach((el) => {
       el.addEventListener('click', () => {
         const r = MapMod.byIndex(+el.dataset.i);
+        if (pickerCb) {
+          const cb = pickerCb; pickerCb = null; closePicker();
+          cb(r);
+          return;
+        }
         state.loc = { name: r.name, kab: r.kab, prov: r.prov, lat: r.lat, lon: r.lon, source: 'manual' };
         saveState();
         closePicker();
@@ -288,7 +296,11 @@
     $('#mapKecSub').textContent = (kec.kab || '?') + ' · ' + (kec.prov || '?') +
       ' · ' + kec.lat.toFixed(4) + '°, ' + kec.lon.toFixed(4) + '°';
     $('#mapWeather').textContent = 'Memuat boundary & cuaca…';
-    const src = await MapMod.showKecamatan(kec);
+    let src = null, approx = false;
+    try {
+      const res = await MapMod.showKecamatan(kec);
+      src = res && res.source; approx = !!(res && res.approx);
+    } catch (e) { console.warn('boundary error', e); }
     // cuaca
     try {
       state.mapWeather = await Weather.fetchWeather(kec.lat, kec.lon);
@@ -297,7 +309,8 @@
       $('#mapWeather').textContent = 'Cuaca tidak tersedia (periksa koneksi internet).';
     }
     renderMapInfo(new Date(), currentZone());
-    if (src === 'cache') toast('Boundary dari cache');
+    if (approx) toast('Boundary OSM belum tersedia — menampilkan perkiraan area');
+    else if (src === 'cache') toast('Boundary dari cache');
   }
 
   function renderMapInfo(now, zone) {
@@ -516,6 +529,11 @@
       setTimeout(() => MapMod.map && MapMod.map.invalidateSize(), 200);
     }
     if (id === 'page-prayer') { renderPrayer(); renderPrayerLive(new Date(), currentZone()); }
+    if (id === 'page-solar' && Solar) {
+      Solar.init();
+      if (!Solar.manual) Solar.setLoc({ name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon });
+      Solar.renderLive(new Date());
+    }
     if (id === 'page-more') {
       const G = window.GEODATA;
       if (G) $('#statKec').textContent = G.kec.length.toLocaleString('id-ID');
@@ -557,6 +575,10 @@
       else toast(txt);
     });
   }
+
+  /* ---------------- EKSPOR KEPERLUAN MIRROR (solar.js) ---------------- */
+  window.toast = toast;
+  window.openKecPicker = openPicker;
 
   /* ---------------- BACK BUTTON NATIVE ---------------- */
   window.onNativeBack = function () {

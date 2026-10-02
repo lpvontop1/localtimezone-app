@@ -1,25 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Gaya widget v1.1 — "almanak": label huruf renggang, angka tegas. -->
 <resources>
-    <style name="WPRow">
+    <!-- Label kecil huruf besar renggang -->
+    <style name="WaLabel">
+        <item name="android:textColor">#97A2BC</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- Chip zona (WIB/WITA/WIT) -->
+    <style name="WaChip">
+        <item name="android:textColor">#FFC46B</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:letterSpacing">0.10</item>
+        <item name="android:background">@drawable/widget_chip</item>
+        <item name="android:paddingLeft">6dp</item>
+        <item name="android:paddingRight">6dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Baris grid jadwal sholat (3 kolom pasangan nama-jam) -->
+    <style name="WaGridRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
-        <item name="android:layout_marginTop">2dp</item>
     </style>
-    <style name="WPName">
+
+    <style name="WaCellName">
         <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">0.8</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:textColor">#9AA3C7</item>
-        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">#97A2BC</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:letterSpacing">0.10</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
-    <style name="WPTime">
+
+    <style name="WaCellTime">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:textColor">#E8EBFF</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#F2F5FB</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFeatureSettings">tnum</item>
         <item name="android:gravity">right</item>
     </style>
 </resources>

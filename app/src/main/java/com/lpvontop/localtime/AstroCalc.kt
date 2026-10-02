@@ -2,6 +2,7 @@ package com.lpvontop.localtime
 
 import java.util.Calendar
 import java.util.TimeZone
+import kotlin.math.asin
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.atan
@@ -180,5 +181,72 @@ object AstroCalc {
         val cal = Calendar.getInstance(TimeZone.getTimeZone(tzId))
         cal.timeInMillis = millis
         return cal.get(Calendar.HOUR_OF_DAY) * 60.0 + cal.get(Calendar.MINUTE) + cal.get(Calendar.SECOND) / 60.0
+    }
+
+    // ---------------- WIDGET v1.1 ----------------
+
+    /**
+     * ID zona waktu GMT custom untuk waktu matahari sejati pada suatu bujur.
+     * TST = UTC + bujur×4 mnt + EoT → jam matahari = UTC + offset ini.
+     * Dipakai TextClock widget agar detak native (kebal Doze/kill).
+     * Presisi dibulatkan ke menit (galat maks 30 detik, EoT berubah <0,5 mnt/hari).
+     */
+    fun solarGmtId(millis: Long, lon: Double): String {
+        val offMin = lon * 4.0 + equationOfTime(millis)
+        val clamped = offMin.coerceIn(0.0, 14.0 * 60.0)
+        val totalMin = Math.round(clamped).toInt()
+        val h = totalMin / 60
+        val m = totalMin % 60
+        return "GMT+%02d:%02d".format(h, m)
+    }
+
+    /** Label zona legal dari offset. */
+    fun zoneLabel(off: Int): String = if (off == 8) "WITA" else if (off == 9) "WIT" else "WIB"
+
+    /** ID zona legal dari offset. */
+    fun zoneTzId(off: Int): String =
+        if (off == 8) "Asia/Makassar" else if (off == 9) "Asia/Jayapura" else "Asia/Jakarta"
+
+    data class SunPhase(
+        val altitudeDeg: Double,   // elevasi sekarang
+        val dayFrac: Double,       // 0..1 progress terbit→terbenam (NaN saat malam)
+        val isNight: Boolean,
+        val sunriseMin: Double?,   // menit-hari lokal (offset)
+        val sunsetMin: Double?
+    )
+
+    /** Fase matahari untuk seni widget (busur matahari / langit malam). */
+    fun sunPhase(millis: Long, lat: Double, lon: Double, tzOffsetHours: Int): SunPhase {
+        val st = sunTimes(millis, lat, lon, tzOffsetHours)
+        val mins = localMinutesNow(millis, zoneTzId(tzOffsetHours))
+        // elevasi kasar: sin(alt) = sin(lat)sin(decl) + cos(lat)cos(decl)cos(H)
+        val decl = solarDeclination(millis) * RAD
+        val lst = trueSolarTimeMinutes(millis, lon)
+        val hourAngle = (lst - 720.0) / 4.0 // 0 saat noon
+        val sinAlt = sin(lat * RAD) * sin(decl) +
+            cos(lat * RAD) * cos(decl) * cos(hourAngle * RAD)
+        val alt = asin(sinAlt.coerceIn(-1.0, 1.0)) * DEG
+        return if (st != null) {
+            val dayLen = st.sunset - st.sunrise
+            val f = if (dayLen > 0) mod(mins - st.sunrise, 1440.0) / dayLen else Double.NaN
+            val night = f < 0.0 || f > 1.0
+            SunPhase(alt, if (night) Double.NaN else f, night, st.sunrise, st.sunset)
+        } else {
+            SunPhase(alt, Double.NaN, alt < 0.0, null, null)
+        }
+    }
+
+    /** Tanggal panjang Indonesia, mis. "Kamis, 2 Okt 2026". */
+    fun dateString(millis: Long, tzId: String): String {
+        val hari = arrayOf("Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu")
+        val bulan = arrayOf("Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des")
+        val cal = Calendar.getInstance(TimeZone.getTimeZone(tzId))
+        cal.timeInMillis = millis
+        return "%s, %d %s %d".format(
+            hari[cal.get(Calendar.DAY_OF_WEEK) - 1],
+            cal.get(Calendar.DAY_OF_MONTH),
+            bulan[cal.get(Calendar.MONTH)],
+            cal.get(Calendar.YEAR)
+        )
     }
 }

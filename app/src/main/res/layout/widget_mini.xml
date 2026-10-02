@@ -1,46 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget 3: Mini Solar Clock 2x1 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Widget 3 "Mini Solar" — jam legal + cincin progres matahari. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_bg"
-    android:padding="12dp"
-    android:gravity="center_vertical">
+    android:background="@drawable/widget_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal"
+        android:paddingLeft="14dp"
+        android:paddingRight="12dp"
         android:gravity="center_vertical">
 
-        <TextClock
-            android:id="@+id/wmClock"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:format24Hour="HH:mm"
-            android:format12Hour="hh:mm a"
-            android:textColor="#E8EBFF"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/wmZone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#7C5CFF"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:layout_marginLeft="8dp"
-            android:text="WIB" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextClock
+                    android:id="@+id/wmClock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format24Hour="HH:mm"
+                    android:format12Hour="hh:mm a"
+                    android:fontFamily="sans-serif-light"
+                    android:fontFeatureSettings="tnum"
+                    android:textColor="#F2F5FB"
+                    android:textSize="30sp"
+                    android:includeFontPadding="false" />
+
+                <TextView
+                    android:id="@+id/wmZone"
+                    style="@style/WaChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:text="WIB" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="3dp">
+
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:src="@drawable/ic_w_sun"
+                    android:contentDescription="@null" />
+
+                <TextClock
+                    android:id="@+id/wmSolarClock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4dp"
+                    android:format24Hour="HH:mm"
+                    android:format12Hour="hh:mm a"
+                    android:fontFamily="sans-serif-medium"
+                    android:fontFeatureSettings="tnum"
+                    android:textColor="#FFC46B"
+                    android:textSize="12sp"
+                    android:includeFontPadding="false" />
+
+                <TextView
+                    android:id="@+id/wmSolarEot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4dp"
+                    android:textColor="#97A2BC"
+                    android:textSize="9sp"
+                    android:text="Matahari" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/wmRing"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Progres hari matahari" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/wmSolar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#FFB454"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        android:text="☀ --:--" />
-</LinearLayout>
+</FrameLayout>

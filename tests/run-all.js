@@ -8,6 +8,8 @@ const suites = [
   'test-zones.js',
   'test-data.js',
   'test-prayer.js',
+  'test-boundary.js',
+  'test-solar.js',
   'stress-test.js',
   'blackbox-test.js',
 ];

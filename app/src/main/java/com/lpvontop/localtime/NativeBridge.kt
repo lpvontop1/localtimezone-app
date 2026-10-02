@@ -87,6 +87,16 @@ class NativeBridge(private val context: Context) {
         })
     }
 
+    /** Buka URL di browser eksternal (dipakai tombol "buka situs asli"). */
+    @JavascriptInterface
+    fun openUrl(url: String) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+        } catch (_: Exception) { }
+    }
+
     @JavascriptInterface
     fun appInfo(): String {
         val o = JSONObject()

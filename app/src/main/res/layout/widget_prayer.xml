@@ -1,81 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget 2: Jadwal Sholat -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Widget 2 "Jadwal Sholat" — tanpa emoji: ikon sabit vektor, bar progres
+     menuju waktu berikutnya, grid 2×3 dengan hierarki tipografi. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/widget_bg"
-    android:padding="14dp">
+    android:background="@drawable/widget_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:id="@+id/wpLoc"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:textColor="#9AA3C7"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:text="🕌 Jadwal Sholat" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:id="@+id/wpNextName"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:textColor="#FFB454"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:text="Berikutnya: Subuh" />
-
-        <TextView
-            android:id="@+id/wpNextTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#E8EBFF"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:text="04:24 · 2 j 10 mnt lagi" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_marginTop="10dp"
-        android:gravity="center">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
-        <LinearLayout style="@style/WPRow">
-            <TextView style="@style/WPName" android:id="@+id/wpL1" android:text="Subuh" />
-            <TextView style="@style/WPTime" android:id="@+id/wpFajr" android:text="--:--" />
-            <TextView style="@style/WPName" android:id="@+id/wpL2" android:text="Dzuhur" />
-            <TextView style="@style/WPTime" android:id="@+id/wpDhuhr" android:text="--:--" />
-            <TextView style="@style/WPName" android:id="@+id/wpL3" android:text="Maghrib" />
-            <TextView style="@style/WPTime" android:id="@+id/wpMaghrib" android:text="--:--" />
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:src="@drawable/ic_w_crescent"
+                android:contentDescription="@null" />
+
+            <TextView
+                style="@style/WaLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:text="JADWAL SHOLAT" />
+
+            <TextView
+                android:id="@+id/wpLoc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#97A2BC"
+                android:textSize="10sp"
+                android:singleLine="true"
+                android:ellipsize="middle"
+                android:maxLength="22"
+                android:text="Menteng" />
         </LinearLayout>
 
-        <LinearLayout style="@style/WPRow">
-            <TextView style="@style/WPName" android:id="@+id/wpL4" android:text="Terbit" />
-            <TextView style="@style/WPTime" android:id="@+id/wpSunrise" android:text="--:--" />
-            <TextView style="@style/WPName" android:id="@+id/wpL5" android:text="Ashar" />
-            <TextView style="@style/WPTime" android:id="@+id/wpAsr" android:text="--:--" />
-            <TextView style="@style/WPName" android:id="@+id/wpL6" android:text="Isya" />
-            <TextView style="@style/WPTime" android:id="@+id/wpIsha" android:text="--:--" />
+        <!-- Waktu berikutnya -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/wpNextName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFC46B"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Dzuhur" />
+
+                <TextView
+                    android:id="@+id/wpNextCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#97A2BC"
+                    android:textSize="10sp"
+                    android:text="2 jam 10 mnt lagi" />
+            </LinearLayout>
+
+            <TextClock
+                android:id="@+id/wpClock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format24Hour="HH:mm"
+                android:format12Hour="hh:mm a"
+                android:fontFamily="sans-serif-light"
+                android:fontFeatureSettings="tnum"
+                android:textColor="#F2F5FB"
+                android:textSize="24sp"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+
+        <!-- Progres menuju waktu berikutnya -->
+        <ProgressBar
+            android:id="@+id/wpBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="7dp"
+            android:max="1000"
+            android:progress="300"
+            android:progressDrawable="@drawable/widget_progress" />
+
+        <!-- Grid 2×3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout style="@style/WaGridRow">
+                <TextView style="@style/WaCellName" android:text="SUBUH" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpFajr" android:text="--:--" />
+                <TextView style="@style/WaCellName" android:text="DZUHUR" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpDhuhr" android:text="--:--" />
+                <TextView style="@style/WaCellName" android:text="MAGRIB" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpMaghrib" android:text="--:--" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="#1AFFFFFF" />
+
+            <LinearLayout style="@style/WaGridRow">
+                <TextView style="@style/WaCellName" android:text="TERBIT" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpSunrise" android:text="--:--" />
+                <TextView style="@style/WaCellName" android:text="ASHAR" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpAsr" android:text="--:--" />
+                <TextView style="@style/WaCellName" android:text="ISYA" />
+                <TextView style="@style/WaCellTime" android:id="@+id/wpIsha" android:text="--:--" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>
